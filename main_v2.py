@@ -139,6 +139,8 @@ async def ip_info_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         ip_address = args[0]
         message = await get_ip_info(ip_address)
         # 发送Markdown格式的消息
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+        await asyncio.sleep(1)  # 模拟正在处理的延时
         await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN_V2)
     else:
         await update.message.reply_text("请提供一个IP地址喵。例如：`/ipinfo 8.8.8.8`", parse_mode=ParseMode.MARKDOWN_V2)
@@ -147,7 +149,8 @@ async def ip_info_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 # 修改帮助命令以包含一言 TTS 功能的详细说明
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     help_text = f"""
-喵～很高兴遇见你，亲爱的旅行者呐！✨ 这里是由{MOEW_NAME}提供服务的机器人喵。以下是你可以跟我玩耍的命令列表喵～🐾
+喵～很高兴遇见你，亲爱的旅行者呐！✨ 
+这里是由{MOEW_NAME}提供服务的机器人喵。以下是你可以跟我玩耍的命令列表喵～🐾
 
 - <code>/start</code> - 开始和{MOEW_NAME}的奇妙之旅。
 - <code>/hello</code> - 让{MOEW_NAME}给你最温暖的问候喵～
@@ -165,7 +168,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 - <code>/reset_chat</code> - 忘掉以前的对话，和{MOEW_NAME}开始一段新的旅程吧喵！
 - <code>/ipinfo</code> - 查水表喵！
 
-呜呼～{MOEW_NAME}在这里等着与你的每一次对话喵！如果你有任何疑问，或者想和我聊点什么，记得随时召唤我哦！🌟{MOEW_NAME}的诞生离不开 CainSakura/NekoCato6/Yitong 你们的协助以及爆炸群友们努力的喵。
+呜呼～{MOEW_NAME}在这里等着与你的每一次对话喵！如果你有任何疑问，或者想和我聊点什么，记得随时召唤我哦！🌟
+{MOEW_NAME}的诞生离不开 CainSakura/NekoCato6/Yitong 你们的协助以及爆炸群友们努力的喵。
     """
     await context.bot.send_message(chat_id=update.effective_chat.id, text=help_text, parse_mode=ParseMode.HTML)
 
@@ -197,7 +201,6 @@ async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not input_text:
         await update.message.reply_text(f"喵～给我些许文字，让{MOEW_NAME}开始愉快的对话吧！")
         return
-
     # 初始化用户的对话历史（如果不存在）
     if user_id not in user_chat_histories:
         user_chat_histories[user_id] = []
@@ -217,7 +220,10 @@ async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # 更新对话历史
         user_chat_histories[user_id].append({"role": "user", "content": input_text})
         user_chat_histories[user_id].append({"role": "assistant", "content": output_text})
-
+        # 添加正在编辑动作
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+        # 稍作等待，以确保用户能看到状态（可选）
+        await asyncio.sleep(1)
         await update.message.reply_text(output_text)
     except Exception as e:
         logger.error(f"在调用OpenAI API时遇到异常: {e}")
@@ -225,6 +231,7 @@ async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def reset_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
+    user_id = update.effective_user.id
     if not is_allowed(entity_id):
         await update.message.reply_text(f"喵～似乎您没有权限询问{MOEW_NAME}这里的小秘密喵。")
         return
@@ -251,6 +258,7 @@ async def ai_tts(update: Update, context: CallbackContext):
     # 在这里添加正在录制的聊天动作
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.RECORD_VOICE)
     # 将当前请求加入队列
+    # 出于减少多余消息量的考量，此提示由聊天动作代替
     #await update.message.reply_text("排队中，请稍候...")
     await request_queue.put(TTSJob(update, context, text, TTS_API_LANGUAGE))
 
@@ -268,6 +276,7 @@ async def ai_tts_reply(update: Update, context: CallbackContext):
             text = reply_to_message.text
             # 在这里添加正在录制的聊天动作
             await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.RECORD_VOICE)
+            # 出于减少多余消息量的考量，此提示由聊天动作代替
             #await update.message.reply_text("排队中，请稍候...")
             await request_queue.put(TTSJob(update, context, text, TTS_API_LANGUAGE))
         else:
@@ -275,7 +284,6 @@ async def ai_tts_reply(update: Update, context: CallbackContext):
     else:
         # 如果不是!aitts命令，可以在这里处理其他逻辑或忽略
         pass
-
 
 # pydub 处理，仍需要 ffmpeg
 async def start_tts_task(context: ContextTypes.DEFAULT_TYPE):
@@ -451,8 +459,6 @@ async def mtr6_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     else:
         await update.message.reply_text(f"`喵????要私聊哦~`", parse_mode=ParseMode.MARKDOWN_V2)
 
-
-
 # 白名单
 def is_allowed(entity_id: int) -> bool:
     return entity_id in ALLOWED_IDS
@@ -486,7 +492,6 @@ def main():
     application.add_handler(CommandHandler("hitokoto_tts", hitokoto_tts))
     application.add_handler(CommandHandler("ipinfo", ip_info_command))
     application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_reply))
-    
     
     queue = application.job_queue
     queue.run_once(start_tts_task, when=1)
