@@ -1,0 +1,9 @@
+psutil
+pynvml
+distro
+python-dotenv
+python-telegram-bot
+aiohttp
+openai
+pydub
+
