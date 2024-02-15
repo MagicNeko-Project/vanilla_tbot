@@ -7,7 +7,6 @@ import platform
 import distro
 import subprocess
 from dotenv import load_dotenv
-import openai
 from openai import OpenAI
 from telegram import Update
 from telegram.constants import ChatAction
@@ -28,6 +27,7 @@ from pydub import AudioSegment
 import io
 # 引用 json 处理 ip 查询
 import json
+import urllib
 
 # 加载环境变量
 load_dotenv()
@@ -42,6 +42,7 @@ OPENAI_PROMPT_ROLE = os.getenv("OPENAI_PROMPT_ROLE", "AI助手")
 OPENAI_ENGINE = os.getenv("OPENAI_ENGINE", "davinci")
 OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://api.openai.com")
 MOEW_NAME = os.getenv("MOEW_NAME")
+TTS_API_TOPK = os.getenv ("TTS_API_TOPK")
 
 # 加载 openai 组件
 client = OpenAI(api_key=OPENAI_API_KEY)
@@ -183,6 +184,7 @@ class TTSJob:
 
 async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
+    user_id = update.effective_user.id
     if not is_allowed(entity_id):
         await update.message.reply_text(f"喵～似乎您没有权限询问{MOEW_NAME}这里的小秘密喵。")
         return
@@ -218,6 +220,7 @@ async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def reset_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
+    user_id = update.effective_user.id
     if not is_allowed(entity_id):
         await update.message.reply_text(f"喵～似乎您没有权限询问{MOEW_NAME}这里的小秘密喵。")
         return
@@ -270,17 +273,25 @@ async def ai_tts_reply(update: Update, context: CallbackContext):
         pass
 
 # 一言 x aitts
+
 async def hitokoto_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """获取一言并通过 TTS 转换为语音消息发送"""
     hitokoto = await get_hitokoto()
     
-    # 准备 TTS 请求
-    request = {"text": hitokoto, "text_language": TTS_API_LANGUAGE}
-    
+    params = {
+        "id": "0",
+        "lang": TTS_API_LANGUAGE,
+        "preset": "default",
+        "top_k": TTS_API_TOPK,
+        "text": hitokoto,
+    }
+    query_string = urllib.parse.urlencode(params)
+    api_url = f"{TTS_API_PATH}/voice/gpt-sovits?{query_string}"
+
     async with ClientSession() as session:
         try:
-            # 发送 TTS 转换请求
-            async with session.post(TTS_API_PATH, json=request, timeout=10) as response:
+            # 发送 TTS 转换请求，这里改为GET请求，并且通过URL传递参数
+            async with session.get(api_url, timeout=10) as response:
                 if response.status == 200:
                     content = await response.read()
                     
@@ -295,10 +306,12 @@ async def hitokoto_tts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 else:
                     # API 调用失败时的处理
                     error_info = await response.text()
-                    await update.message.reply_text(f"生成语音失败（失败）: {response.status}: {error_info}")
+                    await update.message.reply_text(f"生成语音失败: {response.status}: {error_info}")
+        except asyncio.TimeoutError:
+            await update.message.reply_text("请求超时，请稍后再试。")
         except Exception as e:
-            logger.error(f"生成语音时发生异常: {e}")
-            await update.message.reply_text("抱歉，处理您的请求时发生了错误。")
+            await update.message.reply_text(f"处理您的请求时发生了错误：{e}")
+            traceback.print_exc()  # 仅在需要调试时使用
 
 # pydub 处理，仍需要 ffmpeg
 async def start_tts_task(context: ContextTypes.DEFAULT_TYPE):
