@@ -32,26 +32,23 @@ import json
 import urllib.parse
 import traceback
 
+# 文件分离(帮助文本部分)
+from help import help_command
+# mtr 和 markdown_v2 过滤
+from tools.mtr import execute_mtr
+from tools.mtr import mtr_command
+from tools.mtr import mtr4_command
+from tools.mtr import mtr6_command
+from tools.utils import escape_markdown_v2
+
 # 加载环境变量
+from dotenv import load_dotenv
 load_dotenv()
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-TTS_API_PATH = os.getenv("TTS_API_PATH")
-TTS_API_LANGUAGE = os.getenv("TTS_API_LANGUAGE", "auto")
-TTS_API_TOPK = os.getenv("TTS_API_TOPK","20")
-TTS_API_TOPP = os.getenv("TTS_API_TOPP", "0.6")
-TTS_API_temperature = os.getenv("TTS_API_temperature","0.6")
-VERSION = "0.2.7"
-ALLOWED_IDS = [int(i) for i in os.getenv("ALLOWED_IDS", "").split(",") if i]
-ALLOWED_USER_IDS = [int(i) for i in os.getenv("ALLOWED_USER_IDS", "").split(",") if i]
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_PROMPT_ROLE = os.getenv("OPENAI_PROMPT_ROLE", "AI助手")
-OPENAI_ENGINE = os.getenv("OPENAI_ENGINE", "gpt-3.5-turbo")
-OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://api.openai.com")
-MOEW_NAME = os.getenv("MOEW_NAME", "香草")
+import env 
 
 # 加载 openai 组件
-client = OpenAI(api_key=OPENAI_API_KEY)
-client = OpenAI(base_url=OPENAI_API_BASE)
+client = OpenAI(api_key=env.OPENAI_API_KEY)
+client = OpenAI(base_url=env.OPENAI_API_BASE)
 
 # 加载日志模块
 logging.basicConfig(
@@ -65,24 +62,27 @@ user_chat_histories = {}  # 用户ID映射到其对话历史
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"喵～ Hello，{update.effective_user.first_name}！我是{MOEW_NAME}喵。",
+        text=f"喵～ Hello，{update.effective_user.first_name}！我是{env.MOEW_NAME}喵。",
     )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"喵呜，很高兴你和{MOEW_NAME}我见面啦～ 使用 /ai_tts 让我用流萤的声音给你带来温暖吧喵！")
+    await update.message.reply_text(f"喵呜，很高兴你和{env.MOEW_NAME}我见面啦～ 使用 /ai_tts 让我用流萤的声音给你带来温暖吧喵！")
+
+async def cyan(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(f"Cyan is cute!/盐喵可爱！")
 
 async def version(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """发送机器人的当前版本号给用户"""
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"{MOEW_NAME}当前版本是这样的喵：{VERSION}",
+        text=f"{env.MOEW_NAME}当前版本是这样的喵：{env.VERSION}",
     )
 
 # 一言
 async def get_hitokoto():
     async with ClientSession() as session:
         try:
-            response = await session.get(url="https://v1.hitokoto.cn/")
+            response = await session.get(url=env.HITOKOTO_API_URL)
             if response.status == 200:
                 data = await response.json()
                 return data.get("hitokoto", "喵～貌似获取一言时出了点问题。")
@@ -145,34 +145,6 @@ async def ip_info_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     else:
         await update.message.reply_text("请提供一个IP地址喵。例如：`/ipinfo 8.8.8.8`", parse_mode=ParseMode.MARKDOWN_V2)
 
-# 帮助
-# 修改帮助命令以包含一言 TTS 功能的详细说明
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    help_text = f"""
-喵～很高兴遇见你，亲爱的旅行者呐！✨ 
-这里是由{MOEW_NAME}提供服务的机器人喵。以下是你可以跟我玩耍的命令列表喵～🐾
-
-- <code>/start</code> - 开始和{MOEW_NAME}的奇妙之旅。
-- <code>/hello</code> - 让{MOEW_NAME}给你最温暖的问候喵～
-- <code>/version</code> - 告诉你，我们的友情等级现在是多少了哦！
-- <code>/help</code> - 需要{MOEW_NAME}帮助的时候，随时召唤我喵。
-- <code>/ai_tts</code> - 给我一段文字，让我用我的声音告诉你它是什么样子的喵！
-- <code>/hitokoto</code> - 让我告诉你一个来自远方的小秘密喵～
-- <code>/hitokoto_tts</code> - 我会从一言中获取一段话，然后以我的甜美声音读给你听喵🎶 
-- <code>/sys_stats</code> - 告诉你这个服务器的小秘密，包括 CPU、内存和 GPU 都在忙些什么喵。
-- <code>/mtr</code> - 跟我一起去探索到达某个目的地的神秘路径吧，需要告诉我目的地的IP或者域名喵。例如： <code>/mtr 8.8.8.8</code> 。
-- <code>/mtr4</code> - 和 <code>/mtr</code> 一样，不过我们只走 IPv4 的小路喵。
-- <code>/mtr6</code> - 和 <code>/mtr</code> 一样，但是我们只走 IPv6 的大道喵。
-- <code>/id</code> - 告诉你，这个群组或者聊天的秘密编号，还有你的编号也会告诉你喵。
-- <code>/chat</code> - 和{MOEW_NAME}开始旅程吧喵!
-- <code>/reset_chat</code> - 忘掉以前的对话，和{MOEW_NAME}开始一段新的旅程吧喵！
-- <code>/ipinfo</code> - 查水表喵！
-
-呜呼～{MOEW_NAME}在这里等着与你的每一次对话喵！如果你有任何疑问，或者想和我聊点什么，记得随时召唤我哦！🌟
-{MOEW_NAME}的诞生离不开 CainSakura/NekoCato6/Yitong 你们的协助以及爆炸群友们努力的喵。
-    """
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=help_text, parse_mode=ParseMode.HTML)
-
 
 # 创建一个队列（改异步？）
 request_queue = asyncio.Queue(maxsize=65535)
@@ -187,19 +159,15 @@ class TTSJob:
     language: str
 
 # 实现对话能力，由 ChatGPT 提供
-# 设置 OpenAI API 密钥和基础URL
-# TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(base_url=OPENAI_API_BASE)'
-# openai.api_base = OPENAI_API_BASE
-
 async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     user_id = update.effective_user.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{MOEW_NAME}这里的小秘密喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MOEW_NAME}这里的小秘密喵。")
         return
     input_text = " ".join(context.args)
     if not input_text:
-        await update.message.reply_text(f"喵～给我些许文字，让{MOEW_NAME}开始愉快的对话吧！")
+        await update.message.reply_text(f"喵～给我些许文字，让{env.MOEW_NAME}开始愉快的对话吧！")
         return
     # 初始化用户的对话历史（如果不存在）
     if user_id not in user_chat_histories:
@@ -211,7 +179,7 @@ async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     ]
 
     try:
-        response = client.chat.completions.create(model=OPENAI_ENGINE,
+        response = client.chat.completions.create(model=env.OPENAI_ENGINE,
             messages=messages,
             max_tokens=150,
         )
@@ -233,26 +201,26 @@ async def reset_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     user_id = update.effective_user.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{MOEW_NAME}这里的小秘密喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MOEW_NAME}这里的小秘密喵。")
         return
 
     # 重置对话历史
     if user_id in user_chat_histories:
         user_chat_histories[user_id] = []
-        await update.message.reply_text(f"{MOEW_NAME}的对话记忆已经清空了喵，让我们开始新的故事吧！")
+        await update.message.reply_text(f"{env.MOEW_NAME}的对话记忆已经清空了喵，让我们开始新的故事吧！")
     else:
-        await update.message.reply_text(f"喵？似乎还没有与{MOEW_NAME}的旧对话喵～")
+        await update.message.reply_text(f"喵？似乎还没有与{env.MOEW_NAME}的旧对话喵～")
 
 # 定义命令处理函数
 # 修改成 CallbackContext 用于聊天动作
 async def ai_tts(update: Update, context: CallbackContext):
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限让{MOEW_NAME}发声喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限让{env.MOEW_NAME}发声喵。")
         return
     text = " ".join(context.args)
     if not text:
-        await update.message.reply_text(f"想要{MOEW_NAME}说点什么呢？给我点提示吧喵～")
+        await update.message.reply_text(f"想要{env.MOEW_NAME}说点什么呢？给我点提示吧喵～")
         return
 
     # 在这里添加正在录制的聊天动作
@@ -260,13 +228,13 @@ async def ai_tts(update: Update, context: CallbackContext):
     # 将当前请求加入队列
     # 出于减少多余消息量的考量，此提示由聊天动作代替
     #await update.message.reply_text("排队中，请稍候...")
-    await request_queue.put(TTSJob(update, context, text, TTS_API_LANGUAGE))
+    await request_queue.put(TTSJob(update, context, text, env.TTS_API_LANGUAGE))
 
 # 修改成 CallbackContext 用于聊天动作
 async def ai_tts_reply(update: Update, context: CallbackContext):
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限让{MOEW_NAME}发声喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限让{env.MOEW_NAME}发声喵。")
         return
     reply_to_message = update.message.reply_to_message
     command_text = update.message.text.strip()
@@ -278,9 +246,9 @@ async def ai_tts_reply(update: Update, context: CallbackContext):
             await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.RECORD_VOICE)
             # 出于减少多余消息量的考量，此提示由聊天动作代替
             #await update.message.reply_text("排队中，请稍候...")
-            await request_queue.put(TTSJob(update, context, text, TTS_API_LANGUAGE))
+            await request_queue.put(TTSJob(update, context, text, env.TTS_API_LANGUAGE))
         else:
-            await update.message.reply_text(f"想要{MOEW_NAME}说点什么呢？给我点提示吧喵～")
+            await update.message.reply_text(f"想要{env.MOEW_NAME}说点什么呢？给我点提示吧喵～")
     else:
         # 如果不是!aitts命令，可以在这里处理其他逻辑或忽略
         pass
@@ -298,15 +266,15 @@ async def start_tts_task(context: ContextTypes.DEFAULT_TYPE):
 
             params = {
                 "id": "0",
-                "lang": TTS_API_LANGUAGE,
+                "lang": env.TTS_API_LANGUAGE,
                 "preset": "default",
-                "top_k": TTS_API_TOPK,
-                "top_p": TTS_API_TOPP,
-                "temperature": TTS_API_temperature,
+                "top_k": env.TTS_API_TOPK,
+                "top_p": env.TTS_API_TOPP,
+                "temperature": env.TTS_API_temperature,
                 "text": job.text,
             }
             query_string = urllib.parse.urlencode(params)
-            api_url = f"{TTS_API_PATH}/voice/gpt-sovits?{query_string}"
+            api_url = f"{env.TTS_API_PATH}/voice/gpt-sovits?{query_string}"
 
             try:
                 async with session.get(api_url, timeout=10) as response:
@@ -337,13 +305,13 @@ async def hitokoto_tts(update: Update, context: CallbackContext) -> None:
     hitokoto = await get_hitokoto()
     # 将一言文本放入TTS队列处理
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.RECORD_VOICE)
-    await request_queue.put(TTSJob(update, context, hitokoto, TTS_API_LANGUAGE))
+    await request_queue.put(TTSJob(update, context, hitokoto, env.TTS_API_LANGUAGE))
 
 # 查看用户和群组ID的命令
 async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{MOEW_NAME}这里的小秘密喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MOEW_NAME}这里的小秘密喵。")
         return
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
@@ -358,7 +326,7 @@ async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def system_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{MOEW_NAME}这里的小秘密喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MOEW_NAME}这里的小秘密喵。")
         return
     """显示系统CPU、内存以及NVIDIA GPU占用信息（如果有的话）"""
     # 获取CPU信息
@@ -411,57 +379,9 @@ async def system_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # 发送Markdown格式的消息
     await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode=ParseMode.MARKDOWN)
 
-# 执行mtr命令函数
-async def execute_mtr(target, ipv6=False):
-    try:
-        protocol_option = "-6" if ipv6 else "-4"
-        result = subprocess.run(
-            ["mtr", protocol_option, "-r", "-c", "1", "-n", target],
-            capture_output=True, text=True)
-        if result.returncode == 0:
-            return escape_markdown_v2(result.stdout)
-        else:
-            return "MTR命令执行失败。"
-    except Exception as e:
-        return f"MTR命令执行出错: {escape_markdown_v2(str(e))}"
-
-# mtr命令处理函数
-async def mtr_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_id = update.effective_user.id
-    chat_type = update.effective_chat.type
-    args = context.args
-    if chat_type == "private" and user_id in ALLOWED_USER_IDS:
-        if args:
-            target = args[0]
-            output = await execute_mtr(target)
-            await update.message.reply_text(f"```\n{output}\n```", parse_mode=ParseMode.MARKDOWN_V2)
-        else:
-            await update.message.reply_text("`请指定目标IP或域名。`", parse_mode=ParseMode.MARKDOWN_V2)
-    else:
-        await update.message.reply_text(f"`喵～?`", parse_mode=ParseMode.MARKDOWN_V2)
-
-# 应用类似修改于mtr4_command和mtr6_command函数
-async def mtr4_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # 此函数逻辑和mtr_command相同，因为mtr默认就是IPv4
-    await mtr_command(update, context)
-
-async def mtr6_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_id = update.effective_user.id
-    chat_type = update.effective_chat.type
-    args = context.args
-    if chat_type == "private" and user_id in ALLOWED_USER_IDS:
-        if args:
-            target = args[0]
-            output = await execute_mtr(target, ipv6=True)
-            await update.message.reply_text(f"```\n{output}\n```", parse_mode=ParseMode.MARKDOWN_V2)
-        else:
-            await update.message.reply_text("`请指定目标IP或域名。`", parse_mode=ParseMode.MARKDOWN_V2)
-    else:
-        await update.message.reply_text(f"`喵????要私聊哦~`", parse_mode=ParseMode.MARKDOWN_V2)
-
 # 白名单
 def is_allowed(entity_id: int) -> bool:
-    return entity_id in ALLOWED_IDS
+    return entity_id in env.ALLOWED_IDS
 
 # 转义MarkdownV2特殊字符
 def escape_markdown_v2(text):
@@ -472,12 +392,13 @@ def escape_markdown_v2(text):
 def main():
     # 创建 bot 应用实例
     application = (
-        ApplicationBuilder().token(TELEGRAM_TOKEN).concurrent_updates(True).build()
+        ApplicationBuilder().token(env.TELEGRAM_TOKEN).concurrent_updates(True).build()
     )
 
     # 注册命令处理器
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("hello", hello))
+    application.add_handler(CommandHandler("cyan", cyan))
     application.add_handler(CommandHandler("ai_tts", ai_tts))
     application.add_handler(CommandHandler("version", version))
     application.add_handler(CommandHandler("id", id_command))
