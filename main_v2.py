@@ -1,15 +1,10 @@
-import os
 import logging
 import asyncio
-import subprocess
 from dotenv import load_dotenv
-import openai
 from openai import OpenAI
 from telegram import Update
 from telegram.constants import ChatAction
-from telegram.constants import ParseMode
 from telegram.ext import (
-    Application,
     ApplicationBuilder,
     CommandHandler,
     MessageHandler,
@@ -24,24 +19,25 @@ import traceback
 from pydub import AudioSegment
 import io
 # 引用 json 处理 ip 查询
-import json
+
 import urllib.parse
 import traceback
 
 # 文件分离(帮助文本部分)
 from help import help_command
 # mtr 和 markdown_v2 过滤
-from tools.mtr import execute_mtr
 from tools.mtr import mtr_command
 from tools.mtr import mtr4_command
 from tools.mtr import mtr6_command
-from tools.utils import escape_markdown_v2
 from tools.systeminfo import system_stats
-
+from tools.tginfo import id_command
+from tools.ipinfo import ip_info_command
+from tools.hitokoto import get_hitokoto
+from tools.hitokoto import hitokoto_command
 # 加载环境变量
 from dotenv import load_dotenv
 load_dotenv()
-import env 
+import env
 
 # 加载 openai 组件
 client = OpenAI(api_key=env.OPENAI_API_KEY)
@@ -74,74 +70,6 @@ async def version(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         chat_id=update.effective_chat.id,
         text=f"{env.MOEW_NAME}当前版本是这样的喵：{env.VERSION}",
     )
-
-# 一言
-async def get_hitokoto():
-    async with ClientSession() as session:
-        try:
-            response = await session.get(url=env.HITOKOTO_API_URL)
-            if response.status == 200:
-                data = await response.json()
-                return data.get("hitokoto", "喵～貌似获取一言时出了点问题。")
-        except Exception as e:
-            logger.error(f"获取一言时发生错误：{e}")
-            return "喵～获取一言时遇到了一点小困难。"
-
-async def hitokoto_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """向用户发送一条来自一言（Hitokoto）的句子。"""
-    hitokoto = await get_hitokoto()
-    await update.message.reply_text(hitokoto)
-
-# ip查询
-async def get_ip_info(ip_address: str) -> str:
-    try:
-        cmd = ['curl', f'https://api.live.bilibili.com/ip_service/v1/ip_service/get_ip_addr?ip={ip_address}']
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-
-        if result.returncode == 0 and result.stdout:
-            # 确保这里已经定义了 data
-            data = json.loads(result.stdout)
-            if data['code'] == 0:
-                ip_info = data.get("data", {})
-                response_text = (
-                    f"*IP*: `{escape_markdown_v2(ip_info.get('addr', '未知'))}`\n"
-                    f"*国家*: `{escape_markdown_v2(ip_info.get('country', '未知'))}`\n"
-                    f"*省份*: `{escape_markdown_v2(ip_info.get('province', '未知'))}`\n"
-                    f"*城市*: `{escape_markdown_v2(ip_info.get('city', '未知'))}`\n"
-                    f"*ISP*: `{escape_markdown_v2(ip_info.get('isp', '未知'))}`\n"
-                    f"*纬度*: `{escape_markdown_v2(ip_info.get('latitude', '未知'))}`\n"
-                    f"*经度*: `{escape_markdown_v2(ip_info.get('longitude', '未知'))}`"
-                )
-                return response_text
-            else:
-                return "喵～获取IP地址的情报失败了呢。"
-        else:
-            return "喵～无法获得任何IP地址的秘密呢。"
-    except subprocess.CalledProcessError as e:
-        # Logger should be defined elsewhere in your code
-        # logger.error(f"执行curl获取IP地址信息时发生错误：{e}")
-        return "喵～在试图获取IP地址的秘密时我遇到了一点问题，请稍后再试吧。"
-    except json.JSONDecodeError as e:
-        # logger.error(f"解析IP信息时发生错误：{e}")
-        return "喵～我在尝试解读收到的秘密信件时似乎出了点小错，文字好复杂的样子。"
-
-# 确保这个函数定义在 get_ip_info 函数之外
-def escape_markdown_v2(text: str) -> str:
-    escape_chars = '_*[]()~>#+-=|{}.!'
-    return ''.join(f'\\{char}' if char in escape_chars else char for char in text)
-
-async def ip_info_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    args = context.args
-    if args and len(args) == 1:
-        ip_address = args[0]
-        message = await get_ip_info(ip_address)
-        # 发送Markdown格式的消息
-        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-        await asyncio.sleep(1)  # 模拟正在处理的延时
-        await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN_V2)
-    else:
-        await update.message.reply_text("请提供一个IP地址喵。例如：`/ipinfo 8.8.8.8`", parse_mode=ParseMode.MARKDOWN_V2)
-
 
 # 创建一个队列（改异步？）
 request_queue = asyncio.Queue(maxsize=65535)
@@ -303,23 +231,6 @@ async def hitokoto_tts(update: Update, context: CallbackContext) -> None:
     # 将一言文本放入TTS队列处理
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.RECORD_VOICE)
     await request_queue.put(TTSJob(update, context, hitokoto, env.TTS_API_LANGUAGE))
-
-# 查看用户和群组ID的命令
-async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
-    if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MOEW_NAME}这里的小秘密喵。")
-        return
-    chat_id = update.effective_chat.id
-    user_id = update.effective_user.id
-    # 根据聊天类型构建回复消息
-    if update.effective_chat.type == "private":
-        reply_message = f"您的用户ID是: {user_id}"
-    else:
-        reply_message = f"群组/频道ID是: {chat_id}\n您的用户ID是: {user_id}"
-    
-    await update.message.reply_text(reply_message)
-
 
 # 白名单
 def is_allowed(entity_id: int) -> bool:

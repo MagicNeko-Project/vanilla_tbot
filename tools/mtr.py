@@ -6,11 +6,7 @@ from .utils import escape_markdown_v2  # 使用相对导入从同一目录下的
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
     ContextTypes,
-    filters,
 )
 
 def execute_mtr(target, ipv6=False):

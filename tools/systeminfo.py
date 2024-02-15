@@ -6,15 +6,10 @@ import pynvml
 import platform
 import distro
 import env
-from .utils import escape_markdown_v2
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
     ContextTypes,
-    filters,
 )
 
 # 白名单
