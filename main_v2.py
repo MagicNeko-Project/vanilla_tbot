@@ -324,6 +324,7 @@ async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 # 白名单
 def is_allowed(entity_id: int) -> bool:
     return entity_id in env.ALLOWED_IDS
+
 def main():
     # 创建 bot 应用实例
     application = (

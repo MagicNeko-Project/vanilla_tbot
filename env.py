@@ -1,8 +1,7 @@
 # env.py
 
 import os
-from dotenv import load_dotenv
-load_dotenv()
+
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TTS_API_PATH = os.getenv("TTS_API_PATH")
 TTS_API_LANGUAGE = os.getenv("TTS_API_LANGUAGE", "auto")
