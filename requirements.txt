@@ -2,8 +2,7 @@ psutil
 pynvml
 distro
 python-dotenv
-python-telegram-bot
+python-telegram-bot[job-queue]
 aiohttp
 openai
 pydub
-

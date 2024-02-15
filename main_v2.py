@@ -1,11 +1,11 @@
-import logging
-from dotenv import load_dotenv
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
     MessageHandler,
     filters,
 )
+# 加载变量
+import env
 
 # 文件分离
 from tools.base import start
@@ -26,19 +26,6 @@ from tools.aitts import ai_tts
 from tools.aitts import ai_tts_reply
 from tools.aitts import start_tts_task
 from tools.aitts import hitokoto_tts
-from tools.youtube import yt_dlp_command
-
-# 加载环境变量
-from dotenv import load_dotenv
-load_dotenv()
-import env
-
-# 加载日志模块
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-logger = logging.getLogger(__name__)
-
 
 def main():
     # 创建 bot 应用实例
@@ -63,7 +50,6 @@ def main():
     application.add_handler(CommandHandler("hitokoto", hitokoto_command))
     application.add_handler(CommandHandler("hitokoto_tts", hitokoto_tts))
     application.add_handler(CommandHandler("ipinfo", ip_info_command))
-    application.add_handler(CommandHandler('yt_dlp', yt_dlp_command))
     application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_reply))
 
     queue = application.job_queue
