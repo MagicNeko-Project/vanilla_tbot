@@ -5,7 +5,6 @@ from telegram.ext import (
     ContextTypes,
 )
 
-
 # 白名单
 def is_allowed(entity_id: int) -> bool:
     return entity_id in env.ALLOWED_IDS

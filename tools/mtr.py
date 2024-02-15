@@ -2,6 +2,7 @@
 
 import subprocess
 import env
+import asyncio
 from .utils import escape_markdown_v2  # 使用相对导入从同一目录下的 utils 模块导入
 from telegram import Update
 from telegram.constants import ParseMode
@@ -22,6 +23,7 @@ def execute_mtr(target, ipv6=False):
             return "MTR命令执行失败。"
     except Exception as e:
         return f"MTR命令执行出错: {escape_markdown_v2(str(e))}"
+
     
 # mtr命令处理函数
 async def mtr_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -31,18 +33,21 @@ async def mtr_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if chat_type == "private" and user_id in env.ALLOWED_USER_IDS:
         if args:
             target = args[0]
-            output = await execute_mtr(target)
+            loop = asyncio.get_running_loop()
+            # 在后台线程中执行同步的execute_mtr函数
+            output = await loop.run_in_executor(None, execute_mtr, target)
             await update.message.reply_text(f"```\n{output}\n```", parse_mode=ParseMode.MARKDOWN_V2)
         else:
             await update.message.reply_text("`请指定目标IP或域名。`", parse_mode=ParseMode.MARKDOWN_V2)
     else:
-        await update.message.reply_text(f"`喵～?`", parse_mode=ParseMode.MARKDOWN_V2)
+        await update.message.reply_text("`喵～?`", parse_mode=ParseMode.MARKDOWN_V2)
 
 # 应用类似修改于mtr4_command和mtr6_command函数
 async def mtr4_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # 此函数逻辑和mtr_command相同，因为mtr默认就是IPv4
     await mtr_command(update, context)
 
+# 应用类似修改于mtr4_command和mtr6_command函数
 async def mtr6_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
     chat_type = update.effective_chat.type
@@ -50,9 +55,11 @@ async def mtr6_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if chat_type == "private" and user_id in env.ALLOWED_USER_IDS:
         if args:
             target = args[0]
-            output = await execute_mtr(target, ipv6=True)
+            loop = asyncio.get_running_loop()
+            # 在后台线程中执行同步的execute_mtr函数，并传入ipv6=True
+            output = await loop.run_in_executor(None, execute_mtr, target, True)
             await update.message.reply_text(f"```\n{output}\n```", parse_mode=ParseMode.MARKDOWN_V2)
         else:
             await update.message.reply_text("`请指定目标IP或域名。`", parse_mode=ParseMode.MARKDOWN_V2)
     else:
-        await update.message.reply_text(f"`喵????要私聊哦~`", parse_mode=ParseMode.MARKDOWN_V2)
+        await update.message.reply_text("`喵????要私聊哦~`", parse_mode=ParseMode.MARKDOWN_V2)

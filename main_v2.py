@@ -26,6 +26,7 @@ from tools.aitts import ai_tts
 from tools.aitts import ai_tts_reply
 from tools.aitts import start_tts_task
 from tools.aitts import hitokoto_tts
+from tools.youtube import yt_dlp_command
 
 # 加载环境变量
 from dotenv import load_dotenv
@@ -62,8 +63,9 @@ def main():
     application.add_handler(CommandHandler("hitokoto", hitokoto_command))
     application.add_handler(CommandHandler("hitokoto_tts", hitokoto_tts))
     application.add_handler(CommandHandler("ipinfo", ip_info_command))
+    application.add_handler(CommandHandler('yt_dlp', yt_dlp_command))
     application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_reply))
-    
+
     queue = application.job_queue
     queue.run_once(start_tts_task, when=1)
 
