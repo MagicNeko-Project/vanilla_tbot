@@ -39,9 +39,6 @@ async def ai_tts(update: Update, context: CallbackContext):
     if not text:
         await update.message.reply_text(f"想要{env.MEOW_NAME}说点什么呢？给我点提示吧喵～")
         return
-
-    # 在这里添加正在录制的聊天动作
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.RECORD_VOICE)
     # 将当前请求加入队列
     # 出于减少多余消息量的考量，此提示由聊天动作代替
     #await update.message.reply_text("排队中，请稍候...")
@@ -59,8 +56,6 @@ async def ai_tts_reply(update: Update, context: CallbackContext):
     if command_text.lower() == "!aitts":
         if reply_to_message and reply_to_message.text:
             text = reply_to_message.text
-            # 在这里添加正在录制的聊天动作
-            await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.RECORD_VOICE)
             # 出于减少多余消息量的考量，此提示由聊天动作代替
             #await update.message.reply_text("排队中，请稍候...")
             await request_queue.put(TTSJob(update, context, text, env.TTS_API_LANGUAGE))
@@ -94,6 +89,8 @@ async def start_tts_task(context: ContextTypes.DEFAULT_TYPE):
             api_url = f"{env.TTS_API_PATH}/voice/gpt-sovits?{query_string}"
 
             try:
+                # 在这里添加正在录制的聊天动作
+                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.RECORD_VOICE)
                 async with session.get(api_url, timeout=60) as response:
                     if response.status == 200:
                         content = await response.read()
