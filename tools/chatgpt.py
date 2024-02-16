@@ -32,9 +32,8 @@ def is_allowed(entity_id: int) -> bool:
 async def ai_chat(update: Update, context: CallbackContext) -> None:
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     user_id = update.effective_user.id
-    
-    if user_id not in env.ALLOWED_IDS:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"喵～呜呜，您好像还不是{env.MEOW_NAME}的朋友呢。快去找管理员喵～")
+    if not is_allowed(entity_id):
+        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MEOW_NAME}这里的小秘密喵。")
         return
     
     input_text = " ".join(context.args)
