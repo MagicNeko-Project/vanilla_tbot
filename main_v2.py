@@ -13,7 +13,6 @@ import env
 
 # 文件分离
 from tools.base import start
-from tools.base import cyan 
 from tools.base import hello
 from tools.base import version
 from help import help_command
@@ -34,8 +33,9 @@ from tools.nbnhhsh import nbnhhsh_add
 from tools.nbnhhsh import nbnhhsh_help
 from tools.nbnhhsh import nbnhhsh
 from tools.nbnhhsh import inlinequery
-
-
+from tools.egg import cato
+from tools.egg import cyan 
+from tools.egg import yitong 
 def main():
     # 创建 bot 应用实例
     application = (
@@ -45,7 +45,9 @@ def main():
     # 注册命令处理器
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("hello", hello))
+    application.add_handler(CommandHandler("cato", cato))
     application.add_handler(CommandHandler("cyan", cyan))
+    application.add_handler(CommandHandler("yitong", yitong))
     application.add_handler(CommandHandler("ai_tts", ai_tts))
     application.add_handler(CommandHandler("version", version))
     application.add_handler(CommandHandler("id", id_command))

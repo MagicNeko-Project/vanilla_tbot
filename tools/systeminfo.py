@@ -17,9 +17,9 @@ def is_allowed(entity_id: int) -> bool:
     return entity_id in env.ALLOWED_IDS
 
 async def system_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
-    if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MEOW_NAME}这里的小秘密喵。")
+    user_id = update.effective_user.id
+    if user_id not in env.ALLOWED_IDS:
+        await update.message.reply_text("喵~ 你没有权限使用这个功能喵！")
         return
     """显示系统CPU、内存以及NVIDIA GPU占用信息（如果有的话）"""
     # 获取CPU信息

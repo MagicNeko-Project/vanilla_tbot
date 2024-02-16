@@ -12,19 +12,17 @@ logger = logging.getLogger(__name__)
 
 NBNHHSH_API_BASE = env.NBNHHSH_API
 
-HELP_TEXT = '''能不能好好说话 Bot 使用说明
+HELP_TEXT = f'''能不能好好说话 插件使用说明喵~
 
-1. 私聊直接发送你不明白的缩写或包含缩写的文本
-2. 群聊回复别人信息，加上 `/nbnhhsh` 
-3. 群聊通过 `/nbnhhsh kimo` 查询 kimo
+添加词条的方法喵：
 
-添加词条方法：
+喵~ 在私聊或者群里面发送： `/nbnhhsh_add kimo 恶心` 可以添加新的词条喵！
+要查询 kimo 的话，就在私聊或者群里发送： `/nbnhhsh kimo` 喵~
 
-私聊或在群内发送： `/nbnhhsh_add kimo 恶心` 以添加词条
+{env.MEOW_NAME}告诉你好好说话插件的上游地址在这里喵： https://github.com/itorr/nbnhhsh
+是基于这位{env.MEOW_NAME}的代码朋友哦，地址在这儿喵： https://github.com/imlonghao/nbnhhsh_bot 
 
-上游地址： https://github.com/itorr/nbnhhsh
-机器人地址： https://github.com/imlonghao/nbnhhsh_bot 
-'''
+和{env.MEOW_NAME}一起，记得喵，好好说话喵~'''
 
 async def nbnhhsh_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(HELP_TEXT)
@@ -57,6 +55,10 @@ async def guess(text):
     return return_response.strip() if return_response else ': 找不到相关信息'
 
 async def nbnhhsh_add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    if user_id not in env.ALLOWED_IDS:
+        await update.message.reply_text("喵~ 你没有权限使用这个功能喵！")
+        return
     args = context.args
     if len(args) != 2:
         await update.message.reply_text('添加词语用法： `/nbnhhsh_add 缩写 中文`', parse_mode='Markdown')

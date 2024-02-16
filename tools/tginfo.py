@@ -13,7 +13,7 @@ def is_allowed(entity_id: int) -> bool:
 async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MEOW_NAME}这里的小秘密喵。")
+        await update.message.reply_text(f"喵~ 你没有权限使用这个功能喵！")
         return
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
