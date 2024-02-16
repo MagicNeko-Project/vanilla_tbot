@@ -28,18 +28,19 @@ async def nbnhhsh_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(HELP_TEXT)
 
 async def hash_text(text):
-    return hashlib.sha256(text.encode()).hexdigest()
+    hash_object = hashlib.sha256(text.encode())
+    return hash_object.hexdigest()[:10]
 
 async def submit_tran(word, text):
     async with aiohttp.ClientSession() as session:
         async with session.post(f'{NBNHHSH_API_BASE}translation/{word}', json={'text': text}) as resp:
             return await resp.json()
 
-async def guess(text):
+async def nbnhhsh_guess(text):
     words = [word for word in text.split() if word.isalnum()]
     if not words:
         return ': 找不到相关信息'
-    
+
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{NBNHHSH_API_BASE}guess", json={"text": ','.join(words)}) as resp:
             response_json = await resp.json()
@@ -70,25 +71,39 @@ async def nbnhhsh(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     args = context.args
     text_to_guess = ' '.join(args) if args else update.message.reply_to_message.text if update.message.reply_to_message else ''
     if text_to_guess:
-        guessed_text = await guess(text_to_guess)
+        guessed_text = await nbnhhsh_guess(text_to_guess)
         await update.message.reply_text(guessed_text or "找不到相关信息")
 
-async def inlinequery(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def nbnhhsh_inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.inline_query.query
     if not query:
         return
 
     results = []
-    guesses = await guess(query)
-    for guess in guesses.split('\n'):
+    guesses_str = await nbnhhsh_guess(query)
+    if not guesses_str:  # 如果没有猜测结果，可以提供一个默认结果
         results.append(
             InlineQueryResultArticle(
-                id=await hash_text(guess),
-                title=guess,
-                input_message_content=InputTextMessageContent(guess)
+                id="default",  # 确保这个 ID 是唯一的
+                title="未找到结果",
+                input_message_content=InputTextMessageContent("未能找到关于此查询的结果。")
             )
         )
+    else:
+        guesses_list = guesses_str.split('\n')
+        for guess_result in guesses_list:
+            if guess_result:
+                result_id = await hash_text(guess_result)
+                parts = guess_result.split(': ')
+                title = parts[0] if parts[0] else "未知标题"
+                description = parts[1] if len(parts) > 1 else "无描述"
+                results.append(
+                    InlineQueryResultArticle(
+                        id=result_id,
+                        title=title,
+                        description=description,  # 提供一个简短描述
+                        input_message_content=InputTextMessageContent(guess_result)
+                    )
+                )
 
-    await update.inline_query.answer(results)
-
-
+    await update.inline_query.answer(results, cache_time=10, is_personal=True)

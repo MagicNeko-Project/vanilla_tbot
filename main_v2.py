@@ -1,4 +1,3 @@
-
 from telegram import Update, ForceReply
 from telegram.ext import (
     ApplicationBuilder,
@@ -15,6 +14,7 @@ import env
 from tools.base import start
 from tools.base import hello
 from tools.base import version
+from tools.inline import combined_inline_query_handler
 from help import help_command
 from tools.mtr import mtr_command
 from tools.mtr import mtr4_command
@@ -32,10 +32,13 @@ from tools.aitts import hitokoto_tts
 from tools.nbnhhsh import nbnhhsh_add
 from tools.nbnhhsh import nbnhhsh_help
 from tools.nbnhhsh import nbnhhsh
-from tools.nbnhhsh import inlinequery
+from tools.nexttrace import nexttrace_command
+from tools.hxw import hx_handler
 from tools.egg import cato
 from tools.egg import cyan 
 from tools.egg import yitong 
+
+
 def main():
     # 创建 bot 应用实例
     application = (
@@ -64,7 +67,9 @@ def main():
     application.add_handler(CommandHandler("nbnhhsh_help", nbnhhsh_help))
     application.add_handler(CommandHandler("nbnhhsh_add", nbnhhsh_add))
     application.add_handler(CommandHandler("nbnhhsh", nbnhhsh))
-    application.add_handler(InlineQueryHandler(inlinequery))
+    application.add_handler(CommandHandler('nexttrace',nexttrace_command ))
+    application.add_handler(CommandHandler("hxw", hx_handler))
+    application.add_handler(InlineQueryHandler(combined_inline_query_handler))
     application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_reply))
 
     queue = application.job_queue
