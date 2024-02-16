@@ -94,7 +94,7 @@ async def start_tts_task(context: ContextTypes.DEFAULT_TYPE):
             api_url = f"{env.TTS_API_PATH}/voice/gpt-sovits?{query_string}"
 
             try:
-                async with session.get(api_url, timeout=10) as response:
+                async with session.get(api_url, timeout=60) as response:
                     if response.status == 200:
                         content = await response.read()
                         audio = AudioSegment.from_file(io.BytesIO(content), format="wav")
