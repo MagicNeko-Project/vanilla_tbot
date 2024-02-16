@@ -9,34 +9,23 @@ from telegram.ext import (
 
 # 加载变量
 import env
-
 # 文件分离
-from tools.base import start
-from tools.base import hello
-from tools.base import version
+from tools.base import start,hello,version
 from tools.inline import combined_inline_query_handler
 from help import help_command
-from tools.mtr import mtr_command
-from tools.mtr import mtr4_command
-from tools.mtr import mtr6_command
+from tools.mtr import mtr_command,mtr4_command,mtr6_command
 from tools.systeminfo import system_stats
 from tools.tginfo import id_command
 from tools.ipinfo import ip_info_command
 from tools.hitokoto import hitokoto_command
-from tools.chatgpt import ai_chat
-from tools.chatgpt import reset_chat
-from tools.aitts import ai_tts
-from tools.aitts import ai_tts_reply
-from tools.aitts import start_tts_task
-from tools.aitts import hitokoto_tts
-from tools.nbnhhsh import nbnhhsh_add
-from tools.nbnhhsh import nbnhhsh_help
-from tools.nbnhhsh import nbnhhsh
+from tools.chatgpt import ai_chat,reset_chat
+from tools.aispeech import voice_text
+from tools.aitts import ai_tts,ai_tts_reply,start_tts_task,hitokoto_tts
+from tools.nbnhhsh import nbnhhsh_add,nbnhhsh_help,nbnhhsh
 from tools.nexttrace import nexttrace_command
 from tools.hxw import hx_handler
-from tools.egg import cato
-from tools.egg import cyan 
-from tools.egg import yitong 
+from tools.rss import db_connect, rss_subscribe ,check_rss_updates,RSS_TIME
+from tools.egg import cato,cyan,yitong 
 
 
 def main():
@@ -70,7 +59,12 @@ def main():
     application.add_handler(CommandHandler('nexttrace',nexttrace_command ))
     application.add_handler(CommandHandler("hxw", hx_handler))
     application.add_handler(InlineQueryHandler(combined_inline_query_handler))
+    application.add_handler(CommandHandler("rss_subscribe", rss_subscribe,))
+    application.job_queue.run_repeating(check_rss_updates, interval=RSS_TIME, first=10)
+    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, voice_text))
     application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_reply))
+
+
 
     queue = application.job_queue
     queue.run_once(start_tts_task, when=1)
@@ -87,4 +81,12 @@ def main():
     #     # application.run_polling()
 
 if __name__ == "__main__":
+
+    conn = db_connect()
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS subscriptions
+                      (id INTEGER PRIMARY KEY, chat_id INTEGER, feed_url TEXT)''')
+    conn.commit()
+    conn.close()
+
     main()

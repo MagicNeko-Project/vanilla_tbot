@@ -6,3 +6,5 @@ python-telegram-bot[job-queue]
 aiohttp
 openai
 pydub
+feedparser
+openai-whisper

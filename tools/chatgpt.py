@@ -12,8 +12,8 @@ from telegram.ext import (
 from openai import OpenAI
 
 # 加载 openai 组件
-client = OpenAI(api_key=env.OPENAI_API_KEY)
-client = OpenAI(base_url=env.OPENAI_API_BASE)
+# 谢谢 Cato 提示，写一行为正确写法
+client = OpenAI(api_key=env.OPENAI_API_KEY,base_url=env.OPENAI_API_BASE)
 
 # 用户ID映射到其对话历史
 user_chat_histories = {}  
