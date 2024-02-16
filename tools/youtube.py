@@ -70,7 +70,7 @@ async def yt_dlp_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     user_id = update.effective_user.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MOEW_NAME}这里的小秘密喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MEOW_NAME}这里的小秘密喵。")
         return
     if context.args:
         video_url = context.args[0]
@@ -83,7 +83,7 @@ async def live_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     user_id = update.effective_user.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MOEW_NAME}这里的小秘密喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MEOW_NAME}这里的小秘密喵。")
         return
     if context.args:
         live_id = context.args[0]

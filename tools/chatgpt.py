@@ -34,7 +34,7 @@ async def ai_chat(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
     
     if user_id not in env.ALLOWED_IDS:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"喵～呜呜，您好像还不是{env.MOEW_NAME}的朋友呢。快去找管理员喵～")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"喵～呜呜，您好像还不是{env.MEOW_NAME}的朋友呢。快去找管理员喵～")
         return
     
     input_text = " ".join(context.args)
@@ -53,7 +53,7 @@ async def ai_chat(update: Update, context: CallbackContext) -> None:
     messages = user_chat_histories[user_id] + [{"role": "user", "content": input_text}]
     
     try:
-        temp_message = await context.bot.send_message(chat_id=update.effective_chat.id, text=f"喵～{env.MOEW_NAME}正在思考怎么回复您...")
+        temp_message = await context.bot.send_message(chat_id=update.effective_chat.id, text=f"喵～{env.MEOW_NAME}正在思考怎么回复您...")
         response = client.chat.completions.create(model=env.OPENAI_ENGINE,
                                                   messages=messages,
                                                   max_tokens=150)
@@ -80,12 +80,12 @@ async def reset_chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     user_id = update.effective_user.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MOEW_NAME}这里的小秘密喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限询问{env.MEOW_NAME}这里的小秘密喵。")
         return
 
     # 重置对话历史
     if user_id in user_chat_histories:
         user_chat_histories[user_id] = []
-        await update.message.reply_text(f"{env.MOEW_NAME}的对话记忆已经清空了喵，让我们开始新的故事吧！")
+        await update.message.reply_text(f"{env.MEOW_NAME}的对话记忆已经清空了喵，让我们开始新的故事吧！")
     else:
-        await update.message.reply_text(f"喵？似乎还没有与{env.MOEW_NAME}的旧对话喵～")
+        await update.message.reply_text(f"喵？似乎还没有与{env.MEOW_NAME}的旧对话喵～")

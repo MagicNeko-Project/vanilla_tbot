@@ -33,11 +33,11 @@ def is_allowed(entity_id: int) -> bool:
 async def ai_tts(update: Update, context: CallbackContext):
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限让{env.MOEW_NAME}发声喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限让{env.MEOW_NAME}发声喵。")
         return
     text = " ".join(context.args)
     if not text:
-        await update.message.reply_text(f"想要{env.MOEW_NAME}说点什么呢？给我点提示吧喵～")
+        await update.message.reply_text(f"想要{env.MEOW_NAME}说点什么呢？给我点提示吧喵～")
         return
 
     # 在这里添加正在录制的聊天动作
@@ -51,7 +51,7 @@ async def ai_tts(update: Update, context: CallbackContext):
 async def ai_tts_reply(update: Update, context: CallbackContext):
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     if not is_allowed(entity_id):
-        await update.message.reply_text(f"喵～似乎您没有权限让{env.MOEW_NAME}发声喵。")
+        await update.message.reply_text(f"喵～似乎您没有权限让{env.MEOW_NAME}发声喵。")
         return
     reply_to_message = update.message.reply_to_message
     command_text = update.message.text.strip()
@@ -65,7 +65,7 @@ async def ai_tts_reply(update: Update, context: CallbackContext):
             #await update.message.reply_text("排队中，请稍候...")
             await request_queue.put(TTSJob(update, context, text, env.TTS_API_LANGUAGE))
         else:
-            await update.message.reply_text(f"想要{env.MOEW_NAME}说点什么呢？给我点提示吧喵～")
+            await update.message.reply_text(f"想要{env.MEOW_NAME}说点什么呢？给我点提示吧喵～")
     else:
         # 如果不是!aitts命令，可以在这里处理其他逻辑或忽略
         pass
