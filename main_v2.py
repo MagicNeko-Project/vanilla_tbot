@@ -1,9 +1,13 @@
+
+from telegram import Update, ForceReply
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
     MessageHandler,
     filters,
+    InlineQueryHandler,
 )
+
 # 加载变量
 import env
 
@@ -26,6 +30,11 @@ from tools.aitts import ai_tts
 from tools.aitts import ai_tts_reply
 from tools.aitts import start_tts_task
 from tools.aitts import hitokoto_tts
+from tools.nbnhhsh import nbnhhsh_add
+from tools.nbnhhsh import nbnhhsh_help
+from tools.nbnhhsh import nbnhhsh
+from tools.nbnhhsh import inlinequery
+
 
 def main():
     # 创建 bot 应用实例
@@ -50,6 +59,10 @@ def main():
     application.add_handler(CommandHandler("hitokoto", hitokoto_command))
     application.add_handler(CommandHandler("hitokoto_tts", hitokoto_tts))
     application.add_handler(CommandHandler("ipinfo", ip_info_command))
+    application.add_handler(CommandHandler("nbnhhsh_help", nbnhhsh_help))
+    application.add_handler(CommandHandler("nbnhhsh_add", nbnhhsh_add))
+    application.add_handler(CommandHandler("nbnhhsh", nbnhhsh))
+    application.add_handler(InlineQueryHandler(inlinequery))
     application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_reply))
 
     queue = application.job_queue
