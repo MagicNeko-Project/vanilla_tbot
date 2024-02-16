@@ -61,10 +61,10 @@ def main():
     application.add_handler(InlineQueryHandler(combined_inline_query_handler))
     application.add_handler(CommandHandler("rss_subscribe", rss_subscribe,))
     application.job_queue.run_repeating(check_rss_updates, interval=RSS_TIME, first=10)
-    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, voice_text))
-    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_reply))
-
-
+    # 在后面加上分组，可以让两个操作同时使用
+    # 由 Cato 提供建议
+    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, voice_text), group=0)
+    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_reply), group=1)
 
     queue = application.job_queue
     queue.run_once(start_tts_task, when=1)

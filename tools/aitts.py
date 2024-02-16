@@ -52,8 +52,8 @@ async def ai_tts_reply(update: Update, context: CallbackContext):
         return
     reply_to_message = update.message.reply_to_message
     command_text = update.message.text.strip()
-    # 检查命令是否为!aitts
-    if command_text.lower() == "!aitts":
+    # 检查命令是否为!ai_tts
+    if command_text.lower() == "!ai_tts":
         if reply_to_message and reply_to_message.text:
             text = reply_to_message.text
             # 出于减少多余消息量的考量，此提示由聊天动作代替
