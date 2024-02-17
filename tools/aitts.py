@@ -45,7 +45,7 @@ async def ai_tts(update: Update, context: CallbackContext):
     await request_queue.put(TTSJob(update, context, text, env.TTS_API_LANGUAGE))
 
 # 修改成 CallbackContext 用于聊天动作
-async def ai_tts_reply(update: Update, context: CallbackContext):
+async def ai_tts_text(update: Update, context: CallbackContext):
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     if not is_allowed(entity_id):
         await update.message.reply_text(f"喵～似乎您没有权限让{env.MEOW_NAME}发声喵。")

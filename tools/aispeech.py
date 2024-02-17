@@ -71,8 +71,7 @@ async def transcribe_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 在使用在线模型时可取消注释
     await processing_message.edit_text(f"识别结果：{transcript}")
 
-async def voice_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def ai_speech_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().lower()
     if update.message.reply_to_message and message_text == "!ai_speech":
         await transcribe_voice(update, context)
-        

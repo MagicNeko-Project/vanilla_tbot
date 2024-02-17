@@ -1,4 +1,3 @@
-from telegram import Update, ForceReply
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -19,15 +18,13 @@ from tools.tginfo import id_command
 from tools.ipinfo import ip_info_command
 from tools.hitokoto import hitokoto_command
 from tools.chatgpt import ai_chat,reset_chat
-from tools.aispeech import voice_text
-from tools.aitts import ai_tts,ai_tts_reply,start_tts_task,hitokoto_tts
+from tools.aispeech import ai_speech_voice
+from tools.aitts import ai_tts,ai_tts_text,start_tts_task,hitokoto_tts
 from tools.nbnhhsh import nbnhhsh_add,nbnhhsh_help,nbnhhsh
 from tools.nexttrace import nexttrace_command
 from tools.hxw import hx_handler
 from tools.rss import db_connect, rss_subscribe ,check_rss_updates,RSS_TIME
 from tools.egg import cato,cyan,yitong 
-
-
 def main():
     # 创建 bot 应用实例
     application = (
@@ -63,9 +60,9 @@ def main():
     application.job_queue.run_repeating(check_rss_updates, interval=RSS_TIME, first=10)
     # 在后面加上分组，可以让两个操作同时使用
     # 由 Cato 提供建议
-    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, voice_text), group=0)
-    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_reply), group=1)
-
+    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_speech_voice), group=0)
+    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_text), group=1)
+    
     queue = application.job_queue
     queue.run_once(start_tts_task, when=1)
 
