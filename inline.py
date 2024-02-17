@@ -1,11 +1,11 @@
 # inline.py 
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import ContextTypes
-from .tools.hxw import to_hx
-from .tools.hxw import to_hx_hxjt
-from .tools.hxw import to_hx_hxft
-from .tools.nbnhhsh import nbnhhsh_guess
-from .tools.nbnhhsh import hash_text
+from tools.hxw import to_hx
+from tools.hxw import to_hx_hxjt
+from tools.hxw import to_hx_hxft
+from tools.nbnhhsh import nbnhhsh_guess
+from tools.nbnhhsh import hash_text
 from unalix import clear_url
 import re
 from uuid import uuid4

@@ -10,14 +10,14 @@ from telegram.ext import (
 import env
 # 文件分离
 from tools.base import start,hello,version
-from tools.inline import combined_inline_query_handler
+from inline import combined_inline_query_handler
 from help import help_command
 from tools.mtr import mtr_command,mtr4_command,mtr6_command
 from tools.systeminfo import system_stats
 from tools.tginfo import id_command
 from tools.ipinfo import ip_info_command
 from tools.hitokoto import hitokoto_command
-from tools.chatgpt import ai_chat,reset_chat
+from tools.openai_chat import ai_chat,reset_chat
 from tools.aispeech import ai_speech_voice
 from tools.aitts import ai_tts,ai_tts_text,start_tts_task,hitokoto_tts
 from tools.nbnhhsh import nbnhhsh_add,nbnhhsh_help,nbnhhsh
