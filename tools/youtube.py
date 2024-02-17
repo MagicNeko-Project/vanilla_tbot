@@ -1,10 +1,9 @@
+# tools/youtube.py
 import sqlite3
 import asyncio
 from googleapiclient.discovery import build
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
-import subprocess
-import os
+from telegram.ext import ContextTypes
 import re
 import env
 

@@ -1,3 +1,5 @@
+# tools/cnnews.py
+
 import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler

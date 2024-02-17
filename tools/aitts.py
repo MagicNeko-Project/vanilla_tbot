@@ -1,4 +1,6 @@
 # tools/ai_tts.py
+# 本项目的原始功能
+
 import env
 import asyncio
 import io

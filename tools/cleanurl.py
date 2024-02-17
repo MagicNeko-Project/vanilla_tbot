@@ -1,3 +1,7 @@
+# tools/cleanurl.py
+# 链接清理，拒绝跟踪
+# 使用 chatgpt 转化该项目 https://github.com/GauthamramRavichandran/clearurls/ 到本项目中
+
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import ContextTypes
 from unalix import clear_url

@@ -1,3 +1,7 @@
+# tools/nbnhhsh.py
+# 能不能好好说话 
+# 使用 chatgpt 转化 https://github.com/imlonghao/nbnhhsh_bot 该项目到本项目中
+
 import logging
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import ContextTypes

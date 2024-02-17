@@ -1,4 +1,4 @@
-# tools/chatgpt.py
+# tools/openai_chat.py
 # 加载变量
 import env
 import asyncio

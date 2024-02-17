@@ -1,3 +1,7 @@
+# tools/aispeech.py
+# 使用 openai / 本地 的语音识别
+# 下方注释取消后在注释掉在线部分可以使用本地识别
+
 import aiohttp
 import env
 from pydub import AudioSegment

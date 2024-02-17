@@ -1,4 +1,5 @@
 # tools/hitokoto.py
+
 import env
 import logging
 from aiohttp import ClientSession
