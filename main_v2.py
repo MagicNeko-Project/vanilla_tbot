@@ -22,6 +22,7 @@ from tools.aispeech import ai_speech_voice
 from tools.aitts import ai_tts,ai_tts_text,start_tts_task,hitokoto_tts
 from tools.nbnhhsh import nbnhhsh_add,nbnhhsh_help,nbnhhsh
 from tools.nexttrace import nexttrace_command
+from tools.cleanurl import clear_url_handler
 from tools.hxw import hx_handler
 from tools.rss import db_connect, rss_subscribe ,check_rss_updates,RSS_TIME
 from tools.egg import cato,cyan,yitong 
@@ -57,6 +58,7 @@ def main():
     application.add_handler(CommandHandler("hxw", hx_handler))
     application.add_handler(InlineQueryHandler(combined_inline_query_handler))
     application.add_handler(CommandHandler("rss_subscribe", rss_subscribe,))
+    application.add_handler(CommandHandler("url_clean", clear_url_handler))
     application.job_queue.run_repeating(check_rss_updates, interval=RSS_TIME, first=10)
     # 在后面加上分组，可以让两个操作同时使用
     # 由 Cato 提供建议

@@ -5,13 +5,42 @@ from .hxw import to_hx_hxjt
 from .hxw import to_hx_hxft
 from .nbnhhsh import nbnhhsh_guess
 from .nbnhhsh import hash_text
+from unalix import clear_url
+import re
+from uuid import uuid4
+
+
+url_re = re.compile(
+    r"(([hHtTpP]{4}[sS]?)://)?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"
+)
 
 async def combined_inline_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.inline_query.query
     if not query:
         return
-
+    
     results = []
+    # 处理 URL 清理
+    for input_url in url_re.finditer(query):
+        clean_url_result = clear_url(input_url.group())
+        results.append(
+            InlineQueryResultArticle(
+                id=str(uuid4()),  # ID 使用 uuid4 生成
+                title="清洁后的 URL",
+                description=clean_url_result,
+                input_message_content=InputTextMessageContent(clean_url_result)
+            )
+        )
+
+    # 如果 results 为空，即没有匹配的 URL，可以考虑添加占位符结果
+    if not results:
+        results.append(InlineQueryResultArticle(
+            id=str(uuid4()),  # 同样使用 uuid4 生成唯一 ID
+            title="未发现 URL",
+            description="没有发现需要清洁的 URL。",
+            input_message_content=InputTextMessageContent("没有发现需要清洁的 URL。")
+            )
+        )
 
     # Nbnhhsh（猜测缩写）处理逻辑
     guesses_str = await nbnhhsh_guess(query)
@@ -37,7 +66,7 @@ async def combined_inline_query_handler(update: Update, context: ContextTypes.DE
     if hx_text:
         results.append(
             InlineQueryResultArticle(
-                id="hx_" + query.upper(),  # 确保 ID 是唯一的
+                id="hx_" + str(uuid4()),  # 使用 uuid4 生成唯一 ID
                 title='从简繁转火星文',
                 description=hx_text,
                 input_message_content=InputTextMessageContent(hx_text)
@@ -48,7 +77,7 @@ async def combined_inline_query_handler(update: Update, context: ContextTypes.DE
     if hx_text:
         results.append(
             InlineQueryResultArticle(
-                id="hx_jt_" + query.upper(),  # 确保 ID 是唯一的
+                id="hx_jt_" + str(uuid4()),  # 使用 uuid4 生成唯一 ID
                 title='火星文转简体',
                 description=hx_text,
                 input_message_content=InputTextMessageContent(hx_text)
@@ -59,20 +88,10 @@ async def combined_inline_query_handler(update: Update, context: ContextTypes.DE
     if hx_text:
         results.append(
             InlineQueryResultArticle(
-                id="hx_ft_" + query.upper(),  # 确保 ID 是唯一的
+                id="hx_ft_" + str(uuid4()),  # 使用 uuid4 生成唯一 ID
                 title='火星文转繁体',
                 description=hx_text,
                 input_message_content=InputTextMessageContent(hx_text)
-            )
-        )
-
-    # 如果没有任何结果，可以添加一个默认结果
-    if not results:
-        results.append(
-            InlineQueryResultArticle(
-                id="default",  
-                title="未找到结果",
-                input_message_content=InputTextMessageContent("未能找到关于此查询的结果。")
             )
         )
 
