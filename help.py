@@ -27,6 +27,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 - <code>/chat</code> - 和{env.MEOW_NAME}开始旅程吧喵!
 - <code>/reset_chat</code> - 忘掉以前的对话，和{env.MEOW_NAME}开始一段新的旅程吧喵！
 - <code>/ipinfo</code> - 查水表喵！
+- <code>/url_clean</code> - 清理具有跟踪的链接，不要跟踪我喵！！！！
+
+- <code>!ai_speech</code> - 在语音回复该命令可以帮你识别喵！！
 
 呜呼～{env.MEOW_NAME}在这里等着与你的每一次对话喵！如果你有任何疑问，或者想和我聊点什么，记得随时召唤我哦！🌟
 {env.MEOW_NAME}的诞生离不开 CainSakura/NekoCato6/Yitong 你们的协助以及爆炸群友们努力的喵。

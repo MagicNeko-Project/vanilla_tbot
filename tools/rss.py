@@ -24,6 +24,7 @@ def db_connect():
 async def rss_subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.message.chat_id
     # 权限控制(ALLOWED_IDS)
+    user_id = update.effective_user.id
     if user_id not in env.ALLOWED_IDS:
         await update.message.reply_text("喵~ 你没有权限使用这个功能喵！")
         return
