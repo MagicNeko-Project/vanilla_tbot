@@ -68,73 +68,50 @@ async def ai_tts_text(update: Update, context: CallbackContext):
         pass
 
 # pydub 处理，仍需要 ffmpeg
-# 定义异步函数以启动TTS任务
 async def start_tts_task(context: ContextTypes.DEFAULT_TYPE):
-    # 创建异步会话
     async with ClientSession() as session:
-        # 当未收到停止事件或请求队列不为空时持续进行
         while not shutdown_event.is_set() or not request_queue.empty():
             try:
-                # 尝试从请求队列中获取任务，设置超时为1秒
                 job = await asyncio.wait_for(request_queue.get(), timeout=1)
             except asyncio.TimeoutError:
-                # 如果等待超时，则继续下一个循环
                 continue
                 
-            # 获取更新信息
             update = job.update
 
-            # 将环境变量值转换为浮点数，确保API可以正确解析
-            try:
-                top_k = int(env.TTS_API_TOPK)  # 确保 top_k 是整数
-                top_p = float(env.TTS_API_TOPP)
-                temperature = float(env.TTS_API_temperature)
-            except ValueError as e:
-                await update.message.reply_text("环境变量配置错误: 无法将 top_k/top_p/temperature 转换为适当的类型")
-                continue  # 转换失败时跳过此任务
-            # 使用转换后的浮点数构造请求体
-            body = {
-                "cha_name": env.TTS_C_NAME,
-                "text": urllib.parse.quote(job.text),
-                "top_k": top_k,
-                "top_p": top_p,
-                "temperature": temperature,
+            params = {
+                "id": "0",
+                "lang": env.TTS_API_LANGUAGE,
+                "preset": "default",
+                "top_k": env.TTS_API_TOPK,
+                "top_p": env.TTS_API_TOPP,
+                "temperature": env.TTS_API_temperature,
+                "text": job.text,
             }
-
-            # 设置请求头，声明内容类型为JSON
-            headers = {"Content-Type": "application/json"}
+            query_string = urllib.parse.urlencode(params)
+            api_url = f"{env.TTS_API_PATH}/voice/gpt-sovits?{query_string}"
 
             try:
-                # 向用户发送聊天动作提示，表明正在录制语音
+                # 在这里添加正在录制的聊天动作
                 await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.RECORD_VOICE)
-                # 发送POST请求到TTS API，附上JSON数据和头信息
-                async with session.post(env.TTS_API_PATH, json=body, headers=headers, timeout=60) as response:
+                async with session.get(api_url, timeout=60) as response:
                     if response.status == 200:
-                        # 请求成功，读取响应内容
                         content = await response.read()
-                        # 将响应内容转换为音频
                         audio = AudioSegment.from_file(io.BytesIO(content), format="wav")
                         buffer = io.BytesIO()
-                        # 导出音频为OGG格式
                         audio.export(buffer, format="ogg", codec="libopus")
                         buffer.seek(0)
-                        # 发送语音消息给用户
                         await context.bot.send_voice(chat_id=update.effective_chat.id, voice=buffer)
                     else:
-                        # 请求失败，获取错误信息反馈给用户
                         error_info = await response.text()
                         await update.message.reply_text(
                             f"生成错误（失败）: {response.status}: {error_info}"
                         )
             except asyncio.TimeoutError:
-                # 处理请求超时异常
                 await update.message.reply_text("生成错误: 请求超时")
             except Exception as e:
-                # 处理其他异常，打印异常信息
                 await update.message.reply_text(f"生成错误（异常）: {str(e)}")
                 traceback.print_exc()
             finally:
-                # 任务完成，标记队列任务已处理
                 request_queue.task_done()
 
 # 一言 x aitts
