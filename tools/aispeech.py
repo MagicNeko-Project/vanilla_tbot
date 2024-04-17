@@ -76,6 +76,13 @@ async def transcribe_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await processing_message.edit_text(f"识别结果：{transcript}")
 
 async def ai_speech_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # fix 
+    # 首先检查 update.message 是否存在
+    if update.message is None or update.message.text is None:
+        # 如果 update.message 不存在或 update.message.text 不存在，直接返回
+        return
+    
     message_text = update.message.text.strip().lower()
     if update.message.reply_to_message and message_text == "!ai_speech":
         await transcribe_voice(update, context)
+

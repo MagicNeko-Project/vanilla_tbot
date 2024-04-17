@@ -48,24 +48,25 @@ async def ai_tts(update: Update, context: CallbackContext):
 
 # 修改成 CallbackContext 用于聊天动作
 async def ai_tts_text(update: Update, context: CallbackContext):
+    # 检查 update.message 是否存在
+    if update.message is None:
+        # 如果 update.message 不存在，直接返回
+        return
+    
     entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
     if not is_allowed(entity_id):
         await update.message.reply_text(f"喵～似乎您没有权限让{env.MEOW_NAME}发声喵。")
         return
-    reply_to_message = update.message.reply_to_message
-    command_text = update.message.text.strip()
-    # 检查命令是否为!ai_tts
+    
+    # 现在我们知道 update.message 存在，可以安全地检查 .text 属性
+    command_text = update.message.text.strip() if update.message.text else ""
     if command_text.lower() == "!ai_tts":
-        if reply_to_message and reply_to_message.text:
-            text = reply_to_message.text
-            # 出于减少多余消息量的考量，此提示由聊天动作代替
-            #await update.message.reply_text("排队中，请稍候...")
+        # 检查 reply_to_message 是否存在，并且 reply_to_message.text 也存在
+        if update.message.reply_to_message and update.message.reply_to_message.text:
+            text = update.message.reply_to_message.text
             await request_queue.put(TTSJob(update, context, text, env.TTS_API_LANGUAGE))
         else:
             await update.message.reply_text(f"想要{env.MEOW_NAME}说点什么呢？给我点提示吧喵～")
-    else:
-        # 如果不是!aitts命令，可以在这里处理其他逻辑或忽略
-        pass
 
 # pydub 处理，仍需要 ffmpeg
 # 定义异步函数以启动TTS任务
