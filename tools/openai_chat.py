@@ -12,6 +12,8 @@ from telegram.ext import (
     CallbackContext,
 )
 from openai import OpenAI
+import re
+
 
 # 加载环境变量、OpenAI客户端
 # 谢谢 Cato 提示，写一行为正确写法
@@ -133,4 +135,68 @@ async def ai_generate_image(update: Update, context: CallbackContext) -> None:
             chat_id=update.effective_chat.id,
             message_id=temp_message.message_id,
             text="喵～画画出了点小状况，暂时无法完成画作，再试试或者联系管理员吧～"
+        )
+
+async def ai_translate(update: Update, context: CallbackContext) -> None:
+    entity_id = update.effective_user.id if update.effective_chat.type == 'private' else update.effective_chat.id
+    user_id = update.effective_user.id
+    if not is_allowed(entity_id):
+        await update.message.reply_text("喵~ 你没有权限使用这个功能喵！")
+        return
+
+    # 检查是否是翻译指令
+    if update.message.text.startswith('!ai_translate'):
+        # 尝试获取回复的消息内容
+        if update.message.reply_to_message:
+            input_text = update.message.reply_to_message.text
+            # 获取被回复的用户信息
+            source_user = update.message.reply_to_message.from_user
+            source_user_name = source_user.username or f"{source_user.first_name} {source_user.last_name}".strip()
+            source_user_id = source_user.id
+            # 构建带有链接的翻译来源信息
+            translation_source_info = f"翻译自用户<a href='tg://user?id={source_user_id}'>{source_user_name}</a>"
+        else:
+            await update.message.reply_text("喵～请通过回复一条消息来使用翻译功能喵～")
+            return
+    else:
+        # 如果不是!ai_translate命令，不处理
+        return
+
+    if not input_text:
+        await update.message.reply_text("喵～没有文字是要怎么翻译呢？")
+        return
+
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+    await asyncio.sleep(1)  # 模拟延时
+
+    translation_prompt = {
+        "role": "system",
+        "content": "你是一个好用的翻译助手。请将我的中文翻译成英文，将所有非中文的翻译成中文。我发给你所有的话都是需要翻译的内容，你只需要回答翻译结果。翻译结果请符合中文的语言习惯。"
+    }
+
+    messages = [translation_prompt,{"role": "user", "content": input_text}]
+
+    try:
+        temp_message = await context.bot.send_message(chat_id=update.effective_chat.id, text="喵～正在处理您的翻译请求...")
+
+        response = client.chat.completions.create(model=env.OPENAI_ENGINE,
+                                                  messages=messages,
+                                                  max_tokens=150)
+        output_text = response.choices[0].message.content.strip()
+
+        # 如果有翻译来源信息，以HTML格式添加到输出文本中
+        output_text_html = f"<b>翻译结果:</b>\n{output_text}\n\n{translation_source_info}"
+
+        await context.bot.edit_message_text(
+            chat_id=update.effective_chat.id,
+            message_id=temp_message.message_id,
+            text=output_text_html,
+            parse_mode='HTML'  # 确保启用HTML解析
+        )
+    except Exception as e:
+        logger.error(f"遇到了一点小麻烦: {e}")
+        await context.bot.edit_message_text(
+            chat_id=update.effective_chat.id,
+            message_id=temp_message.message_id,
+            text="喵～出了点小状况，暂时无法处理您的翻译请求，再试试或者联系管理员吧～"
         )

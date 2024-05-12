@@ -17,7 +17,7 @@ from tools.systeminfo import system_stats
 from tools.tginfo import id_command
 from tools.ipinfo import ip_info_command
 from tools.hitokoto import hitokoto_command
-from tools.openai_chat import ai_chat,reset_chat,ai_generate_image
+from tools.openai_chat import ai_chat,reset_chat,ai_generate_image,ai_translate
 from tools.aispeech import ai_speech_voice
 from tools.aitts import ai_tts,ai_tts_text,start_tts_task,hitokoto_tts
 from tools.nbnhhsh import nbnhhsh_add,nbnhhsh_help,nbnhhsh
@@ -42,6 +42,7 @@ def main():
     # 图片生成逻辑暂时禁用，太贵了
     # application.add_handler(CommandHandler("ai_image", ai_generate_image))
     application.add_handler(CommandHandler("ai_chat", ai_chat))
+    application.add_handler(CommandHandler("ai_translate", ai_translate))
     application.add_handler(CommandHandler("version", version))
     application.add_handler(CommandHandler("id", id_command))
     application.add_handler(CommandHandler("help", help_command))
@@ -67,6 +68,7 @@ def main():
     # 由 Cato 提供建议
     application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_speech_voice), group=0)
     application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_tts_text), group=1)
+    application.add_handler(MessageHandler(filters.TEXT & filters.REPLY, ai_translate), group=2)
     
     queue = application.job_queue
     queue.run_once(start_tts_task, when=1)

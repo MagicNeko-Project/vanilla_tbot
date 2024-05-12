@@ -6,6 +6,8 @@ from tools.hxw import to_hx_hxjt
 from tools.hxw import to_hx_hxft
 from tools.nbnhhsh import nbnhhsh_guess
 from tools.nbnhhsh import hash_text
+
+from tools.openai_chat import ai_translate,is_allowed 
 from unalix import clear_url
 import re
 from uuid import uuid4
@@ -42,25 +44,27 @@ async def combined_inline_query_handler(update: Update, context: ContextTypes.DE
             input_message_content=InputTextMessageContent("没有发现需要清洁的 URL。")
             )
         )
+    
 
     # Nbnhhsh（猜测缩写）处理逻辑
-    guesses_str = await nbnhhsh_guess(query)
-    if guesses_str:
-        guesses_list = guesses_str.split('\n')
-        for guess_result in guesses_list:
-            if guess_result:
-                result_id = await hash_text(guess_result)  # 确保这个异步函数有效且返回唯一标识
-                parts = guess_result.split(': ')
-                title = parts[0] if parts[0] else "能不能好好说话"
-                description = parts[1] if len(parts) > 1 else "无描述"
-                results.append(
-                    InlineQueryResultArticle(
-                        id="nb_" + result_id,  # 前缀确保 ID 唯一
-                        title=title,
-                        description=description,
-                        input_message_content=InputTextMessageContent(guess_result)
-                    )
-                )
+    #guesses_str = await nbnhhsh_guess(query)
+    #if guesses_str:
+    #    guesses_list = guesses_str.split('\n')
+    #    for guess_result in guesses_list:
+    #        if guess_result:
+    #            result_id = await hash_text(guess_result)  # 确保这个异步函数有效且返回唯一标识
+    #            parts = guess_result.split(': ')
+    #            title = parts[0] if parts[0] else "能不能好好说话"
+    #            description = parts[1] if len(parts) > 1 else "无描述"
+    #            results.append(
+    #                InlineQueryResultArticle(
+    #                    id="nb_" + result_id,  # 前缀确保 ID 唯一
+    #                    title=title,
+    #                    description=description,
+    #                    input_message_content=InputTextMessageContent(guess_result)
+    #                )
+    #            )
+
 
     # 转火星文处理逻辑
     hx_text = to_hx(query)
