@@ -154,7 +154,7 @@ async def ai_translate(update: Update, context: CallbackContext) -> None:
             source_user_name = source_user.username or f"{source_user.first_name} {source_user.last_name}".strip()
             source_user_id = source_user.id
             # 构建带有链接的翻译来源信息
-            translation_source_info = f"翻译自用户<a href='tg://user?id={source_user_id}'>{source_user_name}</a>"
+            translation_source_info = f"翻译自用户:<a href='tg://user?id={source_user_id}'>{source_user_name}</a>\n\n当前使用模型: {env.OPENAI_ENGINE}"
         else:
             await update.message.reply_text("喵～请通过回复一条消息来使用翻译功能喵～")
             return
@@ -181,7 +181,7 @@ async def ai_translate(update: Update, context: CallbackContext) -> None:
 
         response = client.chat.completions.create(model=env.OPENAI_ENGINE,
                                                   messages=messages,
-                                                  max_tokens=150)
+                                                  max_tokens=3000)
         output_text = response.choices[0].message.content.strip()
 
         # 如果有翻译来源信息，以HTML格式添加到输出文本中

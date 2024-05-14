@@ -11,7 +11,7 @@ from telegram.ext import (
 )
 from openai import OpenAI
 # 加载 openai 组件
-# 谢谢 Cato 提示，写一行为正确写法
+# 谢谢 Cato 提示，正确写法
 client = OpenAI(api_key=env.OPENAI_API_KEY2,base_url=env.OPENAI_API_BASE2)
 
 # 初始化 Whisper 模型
@@ -53,6 +53,7 @@ async def transcribe_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 在使用在线模型时可取消注释
     temp_mp3_path = "temp_vioce_converted.mp3"
     audio_segment.export(temp_mp3_path, format="mp3")
+
     # 在使用本地模型时可取消注释
     #temp_wav_path = "temp_voice_converted.wav"
     #audio_segment.export(temp_wav_path, format="wav")
@@ -69,6 +70,7 @@ async def transcribe_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         model="whisper-1",
         response_format="text"
     )
+
     # 发送识别结果
     # 在使用本地模型时可取消注释
     #await processing_message.edit_text(f"识别结果：{transcription}")
@@ -83,6 +85,6 @@ async def ai_speech_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     message_text = update.message.text.strip().lower()
-    if update.message.reply_to_message and message_text == "!ai_speech":
+    if update.message.reply_to_message and message_text == "!ai_whisper":
         await transcribe_voice(update, context)
 

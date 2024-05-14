@@ -21,17 +21,19 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 - <code>/hitokoto_tts</code> - 我会从一言中获取一段话，然后以我的甜美声音读给你听喵🎶 
 - <code>/sys_stats</code> - 告诉你这个服务器的小秘密，包括 CPU、内存和 GPU 都在忙些什么喵。
 - <code>/mtr</code> - 跟我一起去探索到达某个目的地的神秘路径吧，需要告诉我目的地的IP或者域名喵。例如： <code>/mtr 8.8.8.8</code> 。
-- <code>/mtr4</code> - 和 <code>/mtr</code> 一样，不过我们只走 IPv4 的小路喵。
-- <code>/mtr6</code> - 和 <code>/mtr</code> 一样，但是我们只走 IPv6 的大道喵。
 - <code>/id</code> - 告诉你，这个群组或者聊天的秘密编号，还有你的编号也会告诉你喵。
 - <code>/chat</code> - 和{env.MEOW_NAME}开始旅程吧喵!
 - <code>/reset_chat</code> - 忘掉以前的对话，和{env.MEOW_NAME}开始一段新的旅程吧喵！
 - <code>/ipinfo</code> - 查水表喵！
 - <code>/url_clean</code> - 清理具有跟踪的链接，不要跟踪我喵！！！！
 
-- <code>!ai_speech</code> - 在语音回复该命令可以帮你识别喵！！
+- <code>!ai_whisper</code> - 在语音回复该命令可以帮你识别喵！！(OpenAI API)
+- <code>!ai_tts</code> - 在聊天中回复该命令可以帮你生成语音喵！！(Local API)
+- <code>!ai_translate</code> - 在聊天中回复该命令可以帮你翻译喵！！(OpenAI API)
+
+还有 inline 类型指令可以使用喵！
 
 呜呼～{env.MEOW_NAME}在这里等着与你的每一次对话喵！如果你有任何疑问，或者想和我聊点什么，记得随时召唤我哦！🌟
-{env.MEOW_NAME}的诞生离不开 CainSakura/NekoCato6/Yitong 你们的协助以及爆炸群友们努力的喵。
+{env.MEOW_NAME}的代码在 https://github.com/MagicNeko-Project/vanilla_tbot 这里喵。
     """
     await context.bot.send_message(chat_id=update.effective_chat.id, text=help_text, parse_mode=ParseMode.HTML)

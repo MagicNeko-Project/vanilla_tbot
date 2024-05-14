@@ -26,8 +26,8 @@ def main():
     command_register.register_commands(application, dynamic_import, CommandHandler)
 
     # 动态导入复合查询处理器
-    combined_inline_query_handler = dynamic_import("inline", "combined_inline_query_handler")
-    application.add_handler(InlineQueryHandler(combined_inline_query_handler))
+    handle_inline_query = dynamic_import("inline", "handle_inline_query")
+    application.add_handler(InlineQueryHandler(handle_inline_query))
 
     # 动态导入并处理定时任务
     check_rss_updates = dynamic_import("tools.rss", "check_rss_updates")
